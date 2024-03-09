@@ -33,9 +33,9 @@
 #include <SPI.h>
 #include <SD.h>
 
-#define DEBUG
-//#define RELEASE
-#define DATA_FILENAME "data.csv"
+//#define DEBUG
+#define RELEASE
+#define DATA_FILENAME "data3.csv"
 #define FS 100
 
 File myFile;
@@ -61,45 +61,71 @@ void setup() {
 
 void loop() {
     //Accelerometer
-    double acc[3] = {myIMU.readFloatAccelX(), myIMU.readFloatAccelY(),myIMU.readFloatAccelZ()};
+    double acc[10][3];
+    double gyro[10][3];
+    double temp[10];
+    for(int i = 0; i < 10; i++){
+      delay(50);
+      acc[i][0] = myIMU.readFloatAccelX();
+      acc[i][1] = myIMU.readFloatAccelY();
+      acc[i][2] = myIMU.readFloatAccelZ();
 #ifdef DEBUG
-    Serial.print("\nAccelerometer:\n");
-    Serial.print(" X1 = ");
-    Serial.println(acc[0], 4);
-    Serial.print(" Y1 = ");
-    Serial.println(acc[1], 4);
-    Serial.print(" Z1 = ");
-    Serial.println(acc[2], 4);
+      Serial.print("\nAccelerometer:\n");
+      Serial.print(" X1 = ");
+      Serial.println(acc[i][0], 4);
+      Serial.print(" Y1 = ");
+      Serial.println(acc[i][1], 4);
+      Serial.print(" Z1 = ");
+      Serial.println(acc[i][2], 4);
 #endif
     //Gyroscope
-    double gyro[3] = {myIMU.readFloatGyroX(), myIMU.readFloatGyroY(),myIMU.readFloatGyroZ()};
+      gyro[i][0] = myIMU.readFloatGyroX();
+      gyro[i][1] = myIMU.readFloatGyroY();
+      gyro[i][2] = myIMU.readFloatGyroZ();
 #ifdef DEBUG
-    Serial.print("\nGyroscope:\n");
-    Serial.print(" X1 = ");
-    Serial.println(gyro[0], 4);
-    Serial.print(" Y1 = ");
-    Serial.println(gyro[1], 4);
-    Serial.print(" Z1 = ");
-    Serial.println(gyro[2], 4);
+      Serial.print("\nGyroscope:\n");
+      Serial.print(" X1 = ");
+      Serial.println(gyro[i][0], 4);
+      Serial.print(" Y1 = ");
+      Serial.println(gyro[i][1], 4);
+      Serial.print(" Z1 = ");
+      Serial.println(gyro[i][2], 4);
 #endif
     //Thermometer
-    double temp = myIMU.readTempC();
+      temp[i] = myIMU.readTempC();
 #ifdef DEBUG
-    Serial.print("\nThermometer:\n");
-    Serial.print(" Degrees C1 = ");
-    Serial.println(temp, 4);
-#endif
-    char buff[256];
-    memset(buff,0,256);
-    sprintf(buff,"%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,",acc[0],acc[1],acc[2],gyro[0],gyro[1],gyro[2],temp);
-    myFile = SD.open("data.csv",FILE_WRITE);
-    if(myFile){
-      
-    } else {
-      Serial.println("ERROR writing to file");
+      Serial.print("\nThermometer:\n");
+      Serial.print(" Degrees C1 = ");
+      Serial.println(temp[i], 4);
+#endif 
     }
+    unsigned long start_SD = millis();
+    myFile = SD.open(DATA_FILENAME,FILE_WRITE);
+    unsigned long start_saving = millis();
+    for(int i = 0;i<10;i++){
+      char buff[256];
+      memset(buff,0,256);
+      sprintf(buff,"%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f,%0.4f",acc[i][0],acc[i][1],acc[i][2],gyro[i][0],gyro[i][1],gyro[i][2],temp[i]);
+      if(myFile){
+        myFile.println(buff);
+      } else {
+        Serial.println("ERROR writing to file");
+      } 
+    }
+    unsigned long start_closing = millis();
+    myFile.close();
+    unsigned long stop_SD = millis();
+#ifdef DEBUG
+    Serial.print("saving duration ");
+    Serial.println(stop_SD-start_SD);
+    Serial.print("opening duration ");
+    Serial.println(start_saving-start_SD);
+    Serial.print("printing duration ");
+    Serial.println(start_closing-start_saving);
+    Serial.print("closing duration ");
+    Serial.println(stop_SD-start_closing);
+#endif
 #ifdef DEBUG
     Serial.println(buff);
 #endif
-    delay(1000);
 }
