@@ -16,7 +16,7 @@
 #define RELEASE
 //#define TIMING_ANALYSIS
 
-#define DATA_FILENAME "data_final.csv"
+#define DATA_FILENAME "data.csv"
 //#define FS 100 //not used
 
 File myFile;
