@@ -4,9 +4,9 @@ data = csvread("sample_data.csv");
 aX = transformAccelerometer(data(:,1));
 aY = transformAccelerometer(data(:,2));
 aZ = transformAccelerometer(data(:,3));
-gX = transformGyro(data(:,4),4);
-gY = transformGyro(data(:,5),4);
-gZ = transformGyro(data(:,6),4);
+gX = transformGyro(data(:,4),2);
+gY = transformGyro(data(:,5),2);
+gZ = transformGyro(data(:,6),2);
 temperature = transformTemperature(filterTemperature(data(:,7),1200), 2);
 
 figure('Name','Accelerometer data');
@@ -68,11 +68,17 @@ temperaturePlot = plot(temperature);
 legend([temperaturePlot], ["Temperature [C]"]);
 title('Data teploty');
 
-%todo over 360 
+%make better modulo
 function rotation = gyroToRotation(gyroscope, delayS)
     rotation = zeros(length(gyroscope),1);
     for i=2:1:length(gyroscope)
-        rotation(i) = gyroscope(i-1)*delayS + rotation(i-1); 
+        rotation(i) = gyroscope(i-1)*delayS + rotation(i-1);
+        if rotation(i) > 360
+            rotation(i) = rotation(i) - 360;
+        end
+        if rotation(i) < -360
+            rotation(i) = rotation(i) + 360;
+        end
     end
 end
 
