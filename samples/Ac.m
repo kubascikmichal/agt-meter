@@ -4,9 +4,9 @@ data = csvread("sample_data.csv");
 aX = transformAccelerometer(data(:,1));
 aY = transformAccelerometer(data(:,2));
 aZ = transformAccelerometer(data(:,3));
-gX = transformGyro(data(:,4));
-gY = transformGyro(data(:,5));
-gZ = transformGyro(data(:,6));
+gX = transformGyro(data(:,4),4);
+gY = transformGyro(data(:,5),4);
+gZ = transformGyro(data(:,6),4);
 temperature = transformTemperature(filterTemperature(data(:,7),1200), 2);
 
 figure('Name','Accelerometer data');
@@ -26,10 +26,21 @@ Zplot = plot(gZ);
 legend([Xplot,Yplot, Zplot], ["X","Y","Z"]);
 title('Data z gyroskopu');
 
+rotationX = gyroToRotation(gX,0.05);
+rotationY = gyroToRotation(gY,0.05);
+rotationZ = gyroToRotation(gZ,0.05);
 
-velocityX=accelerometerToVelocity(aX,50);
-velocityY=accelerometerToVelocity(aY,50);
-velocityZ=accelerometerToVelocity(aZ,50);
+figure('Name','Rotation data');
+hold on;
+Xplot = plot(rotationX);
+Yplot = plot(rotationY);
+Zplot = plot(rotationZ);
+legend([Xplot,Yplot, Zplot], ["X","Y","Z"]);
+title('Data rotacie');
+
+velocityX=accelerometerToVelocity(aX,0.05);
+velocityY=accelerometerToVelocity(aY,0.05);
+velocityZ=accelerometerToVelocity(aZ,0.05);
 
 figure('Name','Velocity data');
 hold on;
@@ -39,9 +50,9 @@ Zplot = plot(velocityZ);
 legend([Xplot,Yplot, Zplot], ["X","Y","Z"]);
 title('Data rychlosti');
 
-positionX=velocityToPosition(aX, velocityX,50);
-positionY=velocityToPosition(aY,velocityY,50);
-positionZ=velocityToPosition(aZ,velocityZ,50);
+positionX=velocityToPosition(aX, velocityX,0.05);
+positionY=velocityToPosition(aY,velocityY,0.05);
+positionZ=velocityToPosition(aZ,velocityZ,0.05);
 
 figure('Name','Position data');
 hold on;
@@ -57,17 +68,25 @@ temperaturePlot = plot(temperature);
 legend([temperaturePlot], ["Temperature [C]"]);
 title('Data teploty');
 
-function velocity = accelerometerToVelocity(accelerometer, delayMS)
-    velocity=zeros(length(accelerometer),1);
-    for i=2:1:length(accelerometer)
-        velocity(i) = accelerometer(i-1)*delayMS + velocity(i-1);
+%todo over 360 
+function rotation = gyroToRotation(gyroscope, delayS)
+    rotation = zeros(length(gyroscope),1);
+    for i=2:1:length(gyroscope)
+        rotation(i) = gyroscope(i-1)*delayS + rotation(i-1); 
     end
 end
 
-function position = velocityToPosition(accelerometer,velocity, delayMS)
+function velocity = accelerometerToVelocity(accelerometer, delayS)
+    velocity=zeros(length(accelerometer),1);
+    for i=2:1:length(accelerometer)
+        velocity(i) = accelerometer(i-1)*delayS + velocity(i-1);
+    end
+end
+
+function position = velocityToPosition(accelerometer,velocity, delayS)
     position=zeros(length(accelerometer),1);
     for i=2:1:length(accelerometer)
-        position(i) = (1/2)*accelerometer(i-1)*delayMS*delayMS + velocity(i-1)*delayMS;
+        position(i) = (1/2)*accelerometer(i-1)*delayS*delayS + velocity(i-1)*delayS;
     end
 end
 
@@ -78,10 +97,10 @@ function newAcc= transformAccelerometer(acc)
     end
 end
 
-function newGyro = transformGyro(gyro)
+function newGyro = transformGyro(gyro, digits)
     newGyro=zeros(length(gyro),1);
     for i=1:1:length(gyro)
-        newGyro(i) = mod(gyro(i),360);
+        newGyro(i) = round(gyro(i),digits);
     end
 end
 

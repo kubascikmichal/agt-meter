@@ -4,9 +4,9 @@ data = csvread("sample_data.csv");
 aX = transformAccelerometer(data(:,1));
 aY = transformAccelerometer(data(:,2));
 aZ = transformAccelerometer(data(:,3));
-gX = transformGyro(data(:,4));
-gY = transformGyro(data(:,5));
-gZ = transformGyro(data(:,6));
+gX = transformGyro(data(:,4),4);
+gY = transformGyro(data(:,5),4);
+gZ = transformGyro(data(:,6),4);
 temperature = transformTemperature(filterTemperature(data(:,7),1200), 2);
 
 figure('Name','Accelerometer data');
@@ -57,10 +57,17 @@ temperaturePlot = plot(temperature);
 legend([temperaturePlot], ["Temperature [C]"]);
 title('Data teploty');
 
-function velocity = accelerometerToVelocity(accelerometer, delayMS)
+function rotation = gyroToRotation(gyroscope, delayS)
+    rotation = zeros(length(gyroscope),1);
+    for i=2:1:length(gyroscope)
+        rotation(i) = gyroscope(i-1)*delayMS + rotation(i-1); 
+    end
+end
+
+function velocity = accelerometerToVelocity(accelerometer, delayS)
     velocity=zeros(length(accelerometer),1);
     for i=2:1:length(accelerometer)
-        velocity(i) = accelerometer(i-1)*delayMS + velocity(i-1);
+        velocity(i) = accelerometer(i-1)*delayS + velocity(i-1);
     end
 end
 
@@ -78,10 +85,10 @@ function newAcc= transformAccelerometer(acc)
     end
 end
 
-function newGyro = transformGyro(gyro)
+function newGyro = transformGyro(gyro, digits)
     newGyro=zeros(length(gyro),1);
     for i=1:1:length(gyro)
-        newGyro(i) = mod(gyro(i),360);
+        newGyro(i) = round(gyro(i),digits);
     end
 end
 
@@ -93,11 +100,11 @@ function newTemperature = transformTemperature(temp, digits)
 end
 
 function filteredTemperature = filterTemperature(temp, windowLength)
-    filteredTemperature=temp;%zeros(length(temp),1);
+    filteredTemperature=zeros(length(temp),1);
     for i=1:1:length(temp)-windowLength
         filteredTemperature(i) = mean(temp(i:i+windowLength));
     end
-    for i=length(temp)-windowLength:1:windowLength
-        filteredTemperature(i) = mean(temp(i:length()));
+    for i=length(temp)-windowLength:1:length(temp)
+        filteredTemperature(i) = mean(temp(i:length(temp)));
     end
 end
