@@ -38,9 +38,21 @@ Zplot = plot(rotationZ);
 legend([Xplot,Yplot, Zplot], ["X","Y","Z"]);
 title('Data rotacie');
 
-velocityX=accelerometerToVelocity(aX,0.05);
-velocityY=accelerometerToVelocity(aY,0.05);
-velocityZ=accelerometerToVelocity(aZ,0.05);
+filteredAccX=filterAccelerometer(aX, rotationX);
+filteredAccY=filterAccelerometer(aY, rotationY);
+filteredAccZ=filterAccelerometer(aZ, rotationZ);
+
+figure('Name','Filtered accelerometer data');
+hold on;
+Xplot = plot(filteredAccX);
+Yplot = plot(filteredAccY);
+Zplot = plot(filteredAccZ);
+legend([Xplot,Yplot, Zplot], ["X","Y","Z"]);
+title('Data z akcelerometra');
+
+velocityX=accelerometerToVelocity(filteredAccX,0.05);
+velocityY=accelerometerToVelocity(filteredAccY,0.05);
+velocityZ=accelerometerToVelocity(filteredAccZ,0.05);
 
 figure('Name','Velocity data');
 hold on;
@@ -50,9 +62,9 @@ Zplot = plot(velocityZ);
 legend([Xplot,Yplot, Zplot], ["X","Y","Z"]);
 title('Data rychlosti');
 
-positionX=velocityToPosition(aX, velocityX,0.05);
-positionY=velocityToPosition(aY,velocityY,0.05);
-positionZ=velocityToPosition(aZ,velocityZ,0.05);
+positionX=velocityToPosition(filteredAccY,velocityX,0.05);
+positionY=velocityToPosition(filteredAccY,velocityY,0.05);
+positionZ=velocityToPosition(filteredAccZ,velocityZ,0.05);
 
 figure('Name','Position data');
 hold on;
@@ -93,6 +105,13 @@ function position = velocityToPosition(accelerometer,velocity, delayS)
     position=zeros(length(accelerometer),1);
     for i=2:1:length(accelerometer)
         position(i) = (1/2)*accelerometer(i-1)*delayS*delayS + velocity(i-1)*delayS;
+    end
+end
+
+function filtered = filterAccelerometer(acceleration, rotation)
+    filtered=zeros(length(acceleration),1);
+    for i=1:1:length(acceleration)
+        filtered(i) = acceleration(i)-1/cos(rotation(i));
     end
 end
 

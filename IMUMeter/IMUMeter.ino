@@ -1,7 +1,7 @@
 /*****************************************************************************/
 //  IMUmeter.ino
 //  Hardware:      XIAO BLE Sense
-//	Author:	       Michal Kubascikk
+//	Author:	       Michal Kubascik
 //	Date: 	       March,2024
 //	Version:       v1.0
 //
@@ -18,11 +18,13 @@
 
 #define DATA_FILENAME "data.csv"
 //#define FS 100 //not used
-
+const int ledPin = LED_BUILTIN;
 File myFile;
 LSM6DS3 myIMU(I2C_MODE, 0x6A);    //I2C device address 0x6A
 
 void setup() {
+  pinMode(ledPin, OUTPUT);
+  digitalWrite(ledPin, LOW);
   Serial.begin(9600);
 #ifdef DEBUG
   while (!Serial);
